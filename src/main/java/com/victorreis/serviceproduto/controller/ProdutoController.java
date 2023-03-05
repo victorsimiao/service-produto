@@ -1,33 +1,40 @@
 package com.victorreis.serviceproduto.controller;
 
 import com.victorreis.serviceproduto.dto.ProdutoDto;
-import com.victorreis.serviceproduto.model.Produto;
-import com.victorreis.serviceproduto.service.ProdutoService;
-import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
-@RestController
-@RequestMapping("/produtos")
-public class ProdutoController {
-
-    private final ProdutoService produtoService;
-    private final ModelMapper modelMapper;
-
-    public ProdutoController(ProdutoService produtoService, ModelMapper modelMapper) {
-        this.produtoService = produtoService;
-        this.modelMapper = modelMapper;
-    }
-
+public interface ProdutoController {
     @PostMapping
-    public ResponseEntity<ProdutoDto> inserir(@RequestBody @Valid ProdutoDto produtoDto) {
-        Produto produto = produtoService.inserir(modelMapper.map(produtoDto, Produto.class));
-        return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(produto, ProdutoDto.class));
-    }
+    ResponseEntity<ProdutoDto> inserir(@RequestBody @Valid ProdutoDto produtoDto);
+    @Operation(summary = "Retorna o produto correspondente ao identificador recuperado por parametro")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "404",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = """
+                                            {
+                                                "codigo": "X_100",
+                                                "mensagem": "Produto de código 5777 não encontrado",
+                                                "documentacao": null
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    @GetMapping("{id}")
+    ResponseEntity<ProdutoDto> buscarPorId(@PathVariable("id") Long id);
 }
